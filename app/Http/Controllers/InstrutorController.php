@@ -46,16 +46,17 @@ class InstrutorController extends Controller
      */
     public function store(Request $request)
     {
-
+        // Valida os dados recebidos
         $request -> validate($this->instrutor->Regras(),
         $this->instrutor->Feedbacks());
 
+        // Salva a imagem em storage/public/imagem
         $imagem = $request -> file('foto');
-
         $imagem_url = $imagem -> store('imagem', 'public');
 
         // dd($imagem_url);
 
+        // Cria um novo instrutor com os dados fornecidos
         $instrutores = $this->instrutor->create([
             'nome' => $request->nome,
             'foto' => $imagem_url
@@ -73,8 +74,11 @@ class InstrutorController extends Controller
      */
     public function show($id)
     {
+
+        // Busca o instrutor pelo ID
         $instrutores = $this -> instrutor->find($id);
 
+        // Verifica se o instrutor existe e retorna seus dados em JSON
         if($instrutores === null) {
             return response()->json(['error' => 'Não existe dados para esse instrutor'], 404);
         }
@@ -109,17 +113,22 @@ class InstrutorController extends Controller
         echo '<hr>';
         print_r($instrutor->getAttributes()); // Dados antigos
         */
+
+        // Busca o instrutor pelo ID
         $instrutores = $this->instrutor->find($id);
 
         //    dd($request->nome);
         //    dd($request->file('foto'));
 
+            // Verifica se o instrutor existe
             if($instrutores === null){
                 return response()->json(['erro' => 'Impossível realizar a atualização. O instrutor não existe!'], 404);
             }
 
+            // Valida os dados recebidos
             if($request->method() === 'PATCH') {
                 // return ['teste' => 'PATCH'];
+                // Valida apenas os dados que foram enviados na requisição PATCH
 
                 $dadosDinamico = [];
 
@@ -133,18 +142,21 @@ class InstrutorController extends Controller
 
                 $request->validate($dadosDinamico, $this->instrutor->Feedbacks());
             }
-            else{
+            else{ // Valida todos os dados
                 $request->validate($this->instrutor->Regras(), $this->instrutor->Feedbacks());
             }
 
+            // Se uma nova imagem foi enviada, exclui a imagem anterior e armazena a nova
             if($request->file('foto') == true) {
                 Storage::disk('public')->delete($instrutores->foto);
             }
 
+            // Salva a nova imagem em storage/public/imagem
             $imagem = $request -> file('foto');
 
             $imagem_url = $imagem -> store('imagem', 'public');
 
+            // Atualiza os dados do instrutor
            $instrutores -> update([
                 'nome' => $request->nome,
                 'foto' => $imagem_url
@@ -161,17 +173,19 @@ class InstrutorController extends Controller
      */
     public function destroy($id)
     {
+        // Busca o instrutor pelo ID
         $instrutores = $this -> instrutor -> find($id);
 
+        // Verifica se o instrutor existe
         if($instrutores === null){
             return response()->json(['erro' => 'Impossível deleter este registro. O instrutor não existe!'], 404);
         }
 
+        // Exclui a imagem do instrutor do armazenamento público
         // Storage::disk('public')->delete($instrutores->foto);
-
         Storage::disk('public')->delete($instrutores->foto);
 
-        // return 'Cheguei aqui - DESTROY';
+        // Deleta o registro do instrutor do banco de dados
         $instrutores->delete();
 
         return response()->json(['msg' => 'O registro foi removido com sucesso'], 200);
